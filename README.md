@@ -1,1 +1,1 @@
-# coursera-week-1
+# Warhammer steps

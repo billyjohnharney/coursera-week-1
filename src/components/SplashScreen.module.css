@@ -1,0 +1,55 @@
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: #111111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  transition: opacity 500ms ease-in-out;
+}
+
+.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.logo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+}
+
+.icon {
+  width: 112px;
+  height: 112px;
+  border-radius: 24px;
+  /* Subtle glow to lift the icon off the black background */
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.wordmark {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.wordmarkMain {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.wordmarkSub {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 18px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}

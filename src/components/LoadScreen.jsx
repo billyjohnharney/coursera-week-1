@@ -53,7 +53,7 @@ export default function LoadScreen({ onFile, onUrl }) {
       onDrop={handleDrop}
       onPaste={handlePaste}
     >
-      <h1 className={styles.title}>Photo Colour Picker</h1>
+      <h1 className={styles.title}>Caffrey's Colour</h1>
       <p className={styles.subtitle}>Identify exact colours in any photo</p>
 
       <div className={styles.options}>

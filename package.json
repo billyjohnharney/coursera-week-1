@@ -1,5 +1,5 @@
 {
-  "name": "photo-colour-picker",
+  "name": "caffreys-colour",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -14,7 +14,9 @@
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
+    "@vite-pwa/assets-generator": "^1.0.2",
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.11"
+    "vite": "^5.4.11",
+    "vite-plugin-pwa": "^1.2.0"
   }
 }

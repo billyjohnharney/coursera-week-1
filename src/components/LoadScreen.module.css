@@ -59,8 +59,16 @@
 
 .optionIcon {
   grid-row: 1 / 3;
-  font-size: 22px;
-  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text);
+}
+
+.optionIcon svg {
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
 }
 
 .optionLabel {

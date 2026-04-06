@@ -1,0 +1,31 @@
+.container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.canvasWrap {
+  position: relative;
+  line-height: 0;
+  flex-shrink: 0;
+}
+
+.canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+  touch-action: none;
+}
+
+/* Highlight square over the last picked area */
+.highlight {
+  position: absolute;
+  pointer-events: none;
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
+}

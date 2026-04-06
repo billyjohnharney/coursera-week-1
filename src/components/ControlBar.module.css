@@ -1,0 +1,68 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg);
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  background: var(--color-border);
+  flex-shrink: 0;
+}
+
+.toggleGroup {
+  display: flex;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.toggle {
+  background: var(--color-bg);
+  border: none;
+  border-right: 1px solid var(--color-border-strong);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+  /* Comfortable touch target */
+  min-height: 40px;
+}
+
+.toggle:last-child {
+  border-right: none;
+}
+
+.toggle:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.toggle[data-pressed] {
+  background: var(--color-accent);
+  color: #ffffff;
+}

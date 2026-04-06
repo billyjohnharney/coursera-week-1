@@ -131,7 +131,7 @@
   border: 1px solid var(--color-accent);
   border-radius: var(--radius);
   background: var(--color-accent);
-  color: #ffffff;
+  color: #111111;
   cursor: pointer;
   flex-shrink: 0;
 }

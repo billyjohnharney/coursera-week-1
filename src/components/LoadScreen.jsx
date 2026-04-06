@@ -1,6 +1,36 @@
 import React, { useRef, useState } from 'react'
 import styles from './LoadScreen.module.css'
 
+// ── Inline SVG icons ───────────────────────────────────────────
+function IconPhoto() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <path d="M21 15l-5-5L5 21"/>
+    </svg>
+  )
+}
+
+function IconCamera() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+      <circle cx="12" cy="13" r="4"/>
+    </svg>
+  )
+}
+
+function IconLink() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+    </svg>
+  )
+}
+
+// ── Component ─────────────────────────────────────────────────
 export default function LoadScreen({ onFile, onUrl }) {
   const fileInputRef   = useRef(null)
   const cameraInputRef = useRef(null)
@@ -9,7 +39,6 @@ export default function LoadScreen({ onFile, onUrl }) {
   const [dragging, setDragging]     = useState(false)
   const [loadingUrl, setLoadingUrl] = useState(false)
 
-  // ── Drag and drop ──────────────────────────────────────────────
   function handleDrop(e) {
     e.preventDefault()
     setDragging(false)
@@ -23,7 +52,6 @@ export default function LoadScreen({ onFile, onUrl }) {
     if (imageItem) onFile(imageItem.getAsFile())
   }
 
-  // ── URL loading ────────────────────────────────────────────────
   function handleUrlSubmit(e) {
     e.preventDefault()
     const url = urlValue.trim()
@@ -31,13 +59,9 @@ export default function LoadScreen({ onFile, onUrl }) {
     setUrlError('')
     setLoadingUrl(true)
 
-    // Probe the URL by loading it into a temporary Image
     const img = new window.Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      setLoadingUrl(false)
-      onUrl(url)
-    }
+    img.onload = () => { setLoadingUrl(false); onUrl(url) }
     img.onerror = () => {
       setLoadingUrl(false)
       setUrlError('Could not load image. Check the URL or try downloading and uploading the file directly (some servers block cross-origin requests).')
@@ -58,44 +82,25 @@ export default function LoadScreen({ onFile, onUrl }) {
 
       <div className={styles.options}>
 
-        {/* ── Phone photos / file picker ── */}
-        <button
-          className={styles.optionBtn}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <span className={styles.optionIcon} aria-hidden="true">🖼</span>
+        {/* ── File picker ── */}
+        <button className={styles.optionBtn} onClick={() => fileInputRef.current?.click()}>
+          <span className={styles.optionIcon}><IconPhoto /></span>
           <span className={styles.optionLabel}>Choose photo</span>
           <span className={styles.optionHint}>From your device or drag here</span>
         </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          hidden
-          onChange={e => onFile(e.target.files[0])}
-        />
+        <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={e => onFile(e.target.files[0])} />
 
         {/* ── Camera capture ── */}
-        <button
-          className={styles.optionBtn}
-          onClick={() => cameraInputRef.current?.click()}
-        >
-          <span className={styles.optionIcon} aria-hidden="true">📷</span>
+        <button className={styles.optionBtn} onClick={() => cameraInputRef.current?.click()}>
+          <span className={styles.optionIcon}><IconCamera /></span>
           <span className={styles.optionLabel}>Take a photo</span>
           <span className={styles.optionHint}>Use your camera</span>
         </button>
-        <input
-          ref={cameraInputRef}
-          type="file"
-          accept="image/*"
-          capture="environment"
-          hidden
-          onChange={e => onFile(e.target.files[0])}
-        />
+        <input ref={cameraInputRef} type="file" accept="image/*" capture="environment" hidden onChange={e => onFile(e.target.files[0])} />
 
         {/* ── URL ── */}
         <div className={styles.urlBlock}>
-          <span className={styles.optionIcon} aria-hidden="true">🔗</span>
+          <span className={styles.optionIcon}><IconLink /></span>
           <span className={styles.optionLabel}>Load from URL</span>
           <form className={styles.urlForm} onSubmit={handleUrlSubmit}>
             <input
@@ -106,11 +111,7 @@ export default function LoadScreen({ onFile, onUrl }) {
               onChange={e => { setUrlValue(e.target.value); setUrlError('') }}
               aria-label="Image URL"
             />
-            <button
-              type="submit"
-              className={styles.urlBtn}
-              disabled={!urlValue.trim() || loadingUrl}
-            >
+            <button type="submit" className={styles.urlBtn} disabled={!urlValue.trim() || loadingUrl}>
               {loadingUrl ? '…' : 'Load'}
             </button>
           </form>

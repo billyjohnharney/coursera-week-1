@@ -18,19 +18,15 @@
   padding: 4px 0;
   opacity: 0.7;
   flex-shrink: 0;
-  color: inherit;
 }
 
-.resetBtn:hover {
-  opacity: 1;
-}
+.resetBtn:hover { opacity: 1; }
 
 .result {
-  display: flex;
   flex: 1;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   min-width: 0;
 }
 
@@ -43,33 +39,98 @@
   text-overflow: ellipsis;
 }
 
-.valueBtn {
-  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-  font-size: 14px;
+.valueRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Unit trigger (opens popover) ── */
+.unitTrigger {
+  font-family: var(--font);
+  font-size: 12px;
+  font-weight: 500;
   background: transparent;
   border: 1px solid;
   border-radius: var(--radius);
-  padding: 5px 12px;
+  padding: 3px 8px;
   white-space: nowrap;
   flex-shrink: 0;
-  transition: opacity 0.1s;
+  letter-spacing: 0.04em;
 }
 
-.valueBtn:hover {
-  opacity: 0.75;
+.unitTrigger:hover { opacity: 0.75; }
+
+/* ── Value + copy ── */
+.valueWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex: 1;
 }
 
+.valueText {
+  font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.copyBtn {
+  font-size: 11px;
+  font-family: var(--font);
+  background: transparent;
+  border: 1px solid;
+  border-radius: var(--radius);
+  padding: 3px 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.copyBtn:hover { opacity: 0.75; }
+
+/* ── Popover ── */
+.popup {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 8px;
+  padding: 4px;
+  display: flex;
+  flex-direction: column;
+  min-width: 110px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 100;
+}
+
+.unitOption {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+  font-size: 14px;
+  padding: 9px 14px;
+  border: none;
+  border-radius: 5px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.unitOption:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.unitOptionActive {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* placeholder when no colour picked */
 .placeholder {
   flex: 1;
   font-size: 14px;
   color: var(--color-text-muted);
-}
-
-.tooltip {
-  background: var(--color-accent);
-  color: #111111;
-  font-size: 11px;
-  padding: 4px 8px;
-  border-radius: var(--radius);
-  pointer-events: none;
 }

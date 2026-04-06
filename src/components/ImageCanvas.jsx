@@ -6,29 +6,26 @@ import styles from './ImageCanvas.module.css'
 const MAGNIFIER_ZOOM = 5
 
 export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
-  const containerRef   = useRef(null)
-  const canvasRef      = useRef(null)
-  const imageDataRef   = useRef(null)
-  const imgRef         = useRef(null)
-  const pixelSizeRef   = useRef(pixelSize)
-
-  const [magnifier, setMagnifier] = useState(null) // { x, y } in canvas coords
-  // Highlight square shown over the last picked point
-  const [highlight, setHighlight] = useState(null) // { x, y } canvas coords
-
-  // Keep ref in sync so event handlers always see current value
+  const containerRef = useRef(null)
+  const canvasRef    = useRef(null)
+  const imageDataRef = useRef(null)
+  const imgRef       = useRef(null)
+  const pixelSizeRef = useRef(pixelSize)
   pixelSizeRef.current = pixelSize
 
-  // Load image
+  // { x, y } canvas coords — drives the magnifier
+  const [magnifier, setMagnifier] = useState(null)
+  // 'mouse' | 'touch' — controls magnifier anchor position
+  const [magnifierMode, setMagnifierMode] = useState('mouse')
+  // { x, y } canvas coords of the last confirmed pick — drives the highlight box
+  const [highlight, setHighlight] = useState(null)
+
+  // ── Image loading ─────────────────────────────────────────────
   useEffect(() => {
     const img = new window.Image()
     img.crossOrigin = 'anonymous'
-    img.onload = () => {
-      imgRef.current = img
-      redraw()
-    }
+    img.onload = () => { imgRef.current = img; redraw() }
     img.onerror = () => {
-      // Retry without crossOrigin for same-origin blob URLs
       const img2 = new window.Image()
       img2.onload = () => { imgRef.current = img2; redraw() }
       img2.src = imageUrl
@@ -36,7 +33,6 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
     img.src = imageUrl
   }, [imageUrl])
 
-  // Resize observer — redraws canvas when container resizes
   useEffect(() => {
     if (!containerRef.current) return
     const obs = new ResizeObserver(() => redraw())
@@ -50,9 +46,10 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
     const img       = imgRef.current
     if (!container || !canvas || !img) return
 
-    const cw = container.clientWidth
-    const ch = container.clientHeight
-    const scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight)
+    const scale = Math.min(
+      container.clientWidth  / img.naturalWidth,
+      container.clientHeight / img.naturalHeight
+    )
     const dw = Math.round(img.naturalWidth  * scale)
     const dh = Math.round(img.naturalHeight * scale)
 
@@ -64,37 +61,42 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
     imageDataRef.current = ctx.getImageData(0, 0, dw, dh)
   }
 
-  // Convert mouse / touch event to canvas pixel coords
+  // ── Coordinate conversion ─────────────────────────────────────
   function toCanvasCoords(clientX, clientY) {
     const rect   = canvasRef.current.getBoundingClientRect()
     const canvas = canvasRef.current
-    const scaleX = canvas.width  / rect.width
-    const scaleY = canvas.height / rect.height
     return {
-      x: Math.floor((clientX - rect.left) * scaleX),
-      y: Math.floor((clientY - rect.top)  * scaleY),
+      x: Math.floor((clientX - rect.left) * (canvas.width  / rect.width)),
+      y: Math.floor((clientY - rect.top)  * (canvas.height / rect.height)),
     }
   }
 
+  // ── Core pick function ────────────────────────────────────────
   function pickColour(x, y) {
     if (!imageDataRef.current) return
-    const ps = pixelSizeRef.current
+    // Clamp to canvas bounds
+    const cx = Math.max(0, Math.min(x, imageDataRef.current.width  - 1))
+    const cy = Math.max(0, Math.min(y, imageDataRef.current.height - 1))
+    const ps  = pixelSizeRef.current
     const rgb = ps === 1
-      ? samplePixel(imageDataRef.current, x, y)
-      : sampleRegion(imageDataRef.current, x - Math.floor(ps / 2), y - Math.floor(ps / 2),
-                     x + Math.floor(ps / 2), y + Math.floor(ps / 2))
+      ? samplePixel(imageDataRef.current, cx, cy)
+      : sampleRegion(
+          imageDataRef.current,
+          cx - Math.floor(ps / 2), cy - Math.floor(ps / 2),
+          cx + Math.floor(ps / 2), cy + Math.floor(ps / 2)
+        )
     if (rgb) {
       onColour({ ...rgb, pixelSize: ps })
-      setHighlight({ x, y })
+      setHighlight({ x: cx, y: cy })
     }
   }
 
-  // Mouse handlers
+  // ── Mouse handlers ────────────────────────────────────────────
   function handleMouseMove(e) {
     if (!imageDataRef.current) return
     const { x, y } = toCanvasCoords(e.clientX, e.clientY)
     setMagnifier({ x, y })
-    // Live preview on hover
+    setMagnifierMode('mouse')
     pickColour(x, y)
   }
 
@@ -107,16 +109,34 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
     pickColour(x, y)
   }
 
-  // Touch handlers — single tap picks, no magnifier needed
+  // ── Touch handlers ────────────────────────────────────────────
+  // touchstart  → immediate pick at contact point
+  // touchmove   → continuous pick as finger slides (hold & drag)
+  // touchend    → hide magnifier
+
+  function handleTouchStart(e) {
+    e.preventDefault() // stops click delay and page scroll
+    const touch = e.touches[0]
+    const { x, y } = toCanvasCoords(touch.clientX, touch.clientY)
+    setMagnifierMode('touch')
+    setMagnifier({ x, y })
+    pickColour(x, y)
+  }
+
+  function handleTouchMove(e) {
+    e.preventDefault()
+    const touch = e.touches[0]
+    const { x, y } = toCanvasCoords(touch.clientX, touch.clientY)
+    setMagnifier({ x, y })
+    pickColour(x, y)
+  }
+
   function handleTouchEnd(e) {
     e.preventDefault()
-    const touch = e.changedTouches[0]
-    const { x, y } = toCanvasCoords(touch.clientX, touch.clientY)
-    pickColour(x, y)
     setMagnifier(null)
   }
 
-  // Highlight box in CSS-display coordinates
+  // ── Highlight box (CSS display coords) ───────────────────────
   const highlightStyle = highlight && canvasRef.current ? (() => {
     const canvas = canvasRef.current
     const rect   = canvas.getBoundingClientRect()
@@ -138,11 +158,13 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
         <canvas
           ref={canvasRef}
           className={styles.canvas}
+          style={{ cursor: 'crosshair' }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
           onClick={handleClick}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
-          style={{ cursor: 'crosshair' }}
         />
         {highlightStyle && (
           <div className={styles.highlight} style={highlightStyle} aria-hidden="true" />
@@ -153,6 +175,7 @@ export default function ImageCanvas({ imageUrl, pixelSize, onColour }) {
             x={magnifier.x}
             y={magnifier.y}
             zoom={MAGNIFIER_ZOOM}
+            placement={magnifierMode === 'touch' ? 'above' : 'side'}
           />
         )}
       </div>

@@ -1,10 +1,10 @@
 import React, { useEffect, useRef } from 'react'
 import styles from './Magnifier.module.css'
 
-const SIZE   = 120  // diameter px
-const SRC_R  = 14   // radius of source region in canvas pixels (before zoom)
+const SIZE  = 120  // diameter px
+const SRC_R = 14   // source radius in canvas pixels
 
-export default function Magnifier({ canvasRef, x, y, zoom }) {
+export default function Magnifier({ canvasRef, x, y, zoom, placement = 'side' }) {
   const magRef = useRef(null)
 
   useEffect(() => {
@@ -13,42 +13,39 @@ export default function Magnifier({ canvasRef, x, y, zoom }) {
     if (!mag || !src) return
 
     const ctx = mag.getContext('2d')
-    const d   = SIZE
-    mag.width  = d
-    mag.height = d
+    mag.width  = SIZE
+    mag.height = SIZE
 
-    ctx.clearRect(0, 0, d, d)
+    ctx.clearRect(0, 0, SIZE, SIZE)
 
     // Clip to circle
     ctx.save()
     ctx.beginPath()
-    ctx.arc(d / 2, d / 2, d / 2 - 1, 0, Math.PI * 2)
+    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 1, 0, Math.PI * 2)
     ctx.clip()
 
     ctx.imageSmoothingEnabled = false
-    const srcSize = SRC_R * 2
-    ctx.drawImage(src, x - SRC_R, y - SRC_R, srcSize, srcSize, 0, 0, d, d)
+    ctx.drawImage(src, x - SRC_R, y - SRC_R, SRC_R * 2, SRC_R * 2, 0, 0, SIZE, SIZE)
 
     // Centre crosshair
+    const c = SIZE / 2
     ctx.strokeStyle = 'rgba(255,255,255,0.85)'
     ctx.lineWidth = 1
-    const c = d / 2
     ctx.beginPath()
-    ctx.moveTo(c - 7, c); ctx.lineTo(c + 7, c)
-    ctx.moveTo(c, c - 7); ctx.lineTo(c, c + 7)
+    ctx.moveTo(c - 8, c); ctx.lineTo(c + 8, c)
+    ctx.moveTo(c, c - 8); ctx.lineTo(c, c + 8)
     ctx.stroke()
 
     ctx.restore()
 
     // Outer ring
     ctx.beginPath()
-    ctx.arc(d / 2, d / 2, d / 2 - 1, 0, Math.PI * 2)
+    ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 1, 0, Math.PI * 2)
     ctx.strokeStyle = '#111111'
     ctx.lineWidth = 1.5
     ctx.stroke()
   }, [canvasRef, x, y, zoom])
 
-  // Position offset from cursor so it doesn't obscure the pick point
   const canvasEl = canvasRef.current
   if (!canvasEl) return null
 
@@ -57,13 +54,28 @@ export default function Magnifier({ canvasRef, x, y, zoom }) {
   const scaleY = rect.height / canvasEl.height
   const dispX  = x * scaleX
   const dispY  = y * scaleY
-  const offset = SIZE / 2 + 18
 
-  let left = dispX + offset
-  let top  = dispY - SIZE / 2
-  if (left + SIZE > rect.width)  left = dispX - offset - SIZE
-  if (top < 0)                   top  = 0
-  if (top + SIZE > rect.height)  top  = rect.height - SIZE
+  let left, top
+
+  if (placement === 'above') {
+    // Centre horizontally over the touch point, float above the finger
+    const GAP = 24  // gap between fingertip and magnifier bottom edge
+    left = dispX - SIZE / 2
+    top  = dispY - SIZE - GAP
+
+    // Clamp horizontally within the canvas element
+    left = Math.max(0, Math.min(left, rect.width - SIZE))
+    // If too close to the top, flip below instead
+    if (top < 0) top = dispY + GAP
+  } else {
+    // Side placement for mouse — avoids covering the cursor
+    const OFFSET = SIZE / 2 + 18
+    left = dispX + OFFSET
+    top  = dispY - SIZE / 2
+    if (left + SIZE > rect.width)  left = dispX - OFFSET - SIZE
+    left = Math.max(0, left)
+    top  = Math.max(0, Math.min(top, rect.height - SIZE))
+  }
 
   return (
     <canvas

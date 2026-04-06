@@ -64,5 +64,5 @@
 
 .toggle[data-pressed] {
   background: var(--color-accent);
-  color: #ffffff;
+  color: #111111;
 }

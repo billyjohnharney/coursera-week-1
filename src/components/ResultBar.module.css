@@ -67,7 +67,7 @@
 
 .tooltip {
   background: var(--color-accent);
-  color: #ffffff;
+  color: #111111;
   font-size: 11px;
   padding: 4px 8px;
   border-radius: var(--radius);

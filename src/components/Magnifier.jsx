@@ -41,7 +41,7 @@ export default function Magnifier({ canvasRef, x, y, zoom, placement = 'side' })
     // Outer ring
     ctx.beginPath()
     ctx.arc(SIZE / 2, SIZE / 2, SIZE / 2 - 1, 0, Math.PI * 2)
-    ctx.strokeStyle = '#111111'
+    ctx.strokeStyle = 'rgba(180,180,180,0.85)'
     ctx.lineWidth = 1.5
     ctx.stroke()
   }, [canvasRef, x, y, zoom])

@@ -12,60 +12,87 @@ This file provides guidance for AI assistants working in this repository.
 
 ```
 coursera-week-1/
-├── index.html                  # Vite entry point
+├── index.html                    # Vite entry point
 ├── package.json
 ├── vite.config.js
 ├── src/
-│   ├── main.jsx                # React root, mounts App
-│   ├── index.css               # Global reset and CSS custom properties (palette, font)
-│   ├── App.jsx                 # Root layout: header, mode toggle, workspace
+│   ├── main.jsx                  # React root, mounts App
+│   ├── index.css                 # Global reset and CSS custom properties (palette, font)
+│   ├── App.jsx                   # Root layout: ResultBar (top) / ImageCanvas (middle) / ControlBar (bottom)
 │   ├── App.module.css
-│   ├── colourUtils.js          # Pure colour functions: rgbToHex, rgbToHsl, getColourName, samplePixel, sampleRegion
+│   ├── colourUtils.js            # Pure colour functions (no React)
 │   └── components/
-│       ├── DropZone.jsx        # Image loader: drag-drop, file picker, clipboard paste
-│       ├── DropZone.module.css
-│       ├── ImageCanvas.jsx     # Canvas renderer + pixel/area picking + magnifier host
+│       ├── LoadScreen.jsx        # Landing: choose file, camera capture, URL input, drag-drop, paste
+│       ├── LoadScreen.module.css
+│       ├── ResultBar.jsx         # Top bar: colour swatch bg + name + formatted value + copy button
+│       ├── ResultBar.module.css
+│       ├── ImageCanvas.jsx       # Canvas renderer + pixel/area picking + magnifier + highlight box
 │       ├── ImageCanvas.module.css
-│       ├── ColourPanel.jsx     # Sidebar: swatch, name, hex/RGB/HSL, copy buttons
-│       ├── ColourPanel.module.css
-│       ├── Magnifier.jsx       # Zoomed lens drawn on a secondary canvas, overlaid on ImageCanvas
-│       └── Magnifier.module.css
-└── dist/                       # Built output (gitignored)
+│       ├── Magnifier.jsx         # Zoomed lens overlay (desktop/mouse only)
+│       ├── Magnifier.module.css
+│       ├── ControlBar.jsx        # Bottom bar: pixel area size toggle + colour unit toggle
+│       └── ControlBar.module.css
+└── dist/                         # Built output (gitignored)
+```
+
+## UI Layout
+
+```
+┌──────────────────────────────────┐
+│  ResultBar  (swatch bg + name + value + copy)  │  ← top
+├──────────────────────────────────┤
+│                                  │
+│          ImageCanvas             │  ← fills middle, touch + mouse
+│                                  │
+├──────────────────────────────────┤
+│  ControlBar  [1px][3×3][5×5]…  [Hex][RGB][HSL]  │  ← bottom (thumb zone)
+└──────────────────────────────────┘
 ```
 
 ## Key Conventions
 
 ### Styling
 - **CSS Modules** for all component styles (`.module.css` co-located with component)
-- **Global CSS custom properties** defined in `src/index.css` under `:root` — use these everywhere:
+- **Global CSS custom properties** in `src/index.css` under `:root`:
   - `--color-bg`, `--color-surface`, `--color-border`, `--color-border-strong`
-  - `--color-text`, `--color-text-muted`, `--color-accent`, `--color-accent-hover`
+  - `--color-text`, `--color-text-muted`, `--color-accent`
   - `--radius`, `--font`
-- Black/white palette — do not introduce colour into the chrome; only the picked colour swatch shows colour
-- System font stack via `--font` — do not add web fonts
+- Black/white palette — the UI chrome is achromatic; only the ResultBar background shows colour
+- `env(safe-area-inset-bottom)` used in ControlBar for iPhone notch/home-indicator clearance
 
-### Base UI usage
-- Use `@base-ui/react` for interactive primitives: `Tooltip`, `ToggleGroup`, `Toggle`, etc.
-- Base UI is headless — all visual styles must be provided via CSS Modules
-- Base UI components expose `data-*` state attributes (e.g. `data-pressed`, `data-open`) for styling
+### Base UI usage (`@base-ui/react`)
+- `ToggleGroup` + `Toggle` — pixel area size selector and colour unit selector (ControlBar)
+- `Tooltip` — copy button feedback (ResultBar)
+- All Base UI components are headless; visual styles provided via CSS Modules
+- Active state styled via `[data-pressed]` attribute on `Toggle`
 
 ### Colour logic (`colourUtils.js`)
-- All pure functions, no side effects, no React imports
-- `samplePixel(imageData, x, y)` — single pixel RGBA from a canvas ImageData
-- `sampleRegion(imageData, x1, y1, x2, y2)` — averaged RGBA across a rectangle
-- `rgbToHsl(r, g, b)` — returns `{ h, s, l }` in degrees/percent
-- `rgbToHex(r, g, b)` — returns `#rrggbb` string
-- `getColourName(r, g, b)` — returns a human-readable name like "Dark Muted Green"
+All pure functions, no side effects, no React:
+- `samplePixel(imageData, x, y)` — single pixel RGB
+- `sampleRegion(imageData, x1, y1, x2, y2)` — averaged RGB across a rectangle
+- `rgbToHsl(r, g, b)` → `{ h, s, l }`
+- `rgbToHex(r, g, b)` → `#rrggbb`
+- `getColourName(r, g, b)` → human-readable string e.g. "Dark Muted Green"
 
-### Canvas / ImageCanvas
-- One `<canvas>` element is sized to fit its container while preserving aspect ratio
-- `imageDataRef` holds the raw `ImageData` for fast pixel reads (avoids repeated `getImageData` calls)
-- Mouse coords are converted from CSS pixels to canvas pixels via `toCanvasCoords()` (accounts for CSS scaling)
-- Pixel mode: updates colour on every `mousemove`, locks on click
-- Area mode: drag to select rectangle, releases on `mouseup`
+### ImageCanvas
+- Canvas sized to fit container while preserving aspect ratio
+- `imageDataRef` holds raw `ImageData` — avoids repeated `getImageData` calls
+- Mouse events: live preview on `mousemove`, locked on `click`
+- Touch events: `touchend` picks colour (no magnifier on touch)
+- `pixelSize` prop (from ControlBar): 1 = single pixel, N = N×N centred area average
+- Highlight box (white outline with dark shadow) marks the last picked area
 
-### No test suite yet
-- Add tests under `src/__tests__/` when needed; prefer unit tests for `colourUtils.js`
+### ResultBar
+- Background transitions to the picked colour
+- Text colour auto-switches black/white for contrast (WCAG luminance formula)
+- Formats the value according to selected `unit`: `hex` / `rgb` / `hsl`
+
+### LoadScreen — image sources
+1. **File picker** — `<input type="file" accept="image/*">`
+2. **Camera capture** — `<input type="file" accept="image/*" capture="environment">`
+3. **URL** — probed with a temporary `Image` object (`crossOrigin="anonymous"`)
+4. **Drag-and-drop** — `onDrop` on the screen container
+5. **Clipboard paste** — `onPaste` reads `clipboardData.items`
 
 ## Development Workflow
 
@@ -82,4 +109,3 @@ npm run preview  # serve dist/ locally
 - **Main branch:** `master`
 - Always develop on the designated feature branch; never push to `master` without explicit instruction
 - Use `git push -u origin <branch-name>` when pushing
-- Write clear, descriptive commit messages

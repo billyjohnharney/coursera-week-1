@@ -1,15 +1,15 @@
 import React, { useState } from 'react'
-import { ToggleGroup } from '@base-ui/react/toggle-group'
-import { Toggle } from '@base-ui/react/toggle'
 import ImageCanvas from './components/ImageCanvas'
-import ColourPanel from './components/ColourPanel'
-import DropZone from './components/DropZone'
+import ResultBar from './components/ResultBar'
+import ControlBar from './components/ControlBar'
+import LoadScreen from './components/LoadScreen'
 import styles from './App.module.css'
 
 export default function App() {
   const [imageUrl, setImageUrl] = useState(null)
   const [colour, setColour] = useState(null)
-  const [mode, setMode] = useState('pixel')
+  const [pixelSize, setPixelSize] = useState(1)   // 1 = single pixel, N = N×N area
+  const [unit, setUnit] = useState('hex')          // 'hex' | 'rgb' | 'hsl'
 
   function handleFile(file) {
     if (!file || !file.type.startsWith('image/')) return
@@ -21,56 +21,36 @@ export default function App() {
     setColour(null)
   }
 
+  function handleUrl(url) {
+    setImageUrl(prev => {
+      if (prev && prev.startsWith('blob:')) URL.revokeObjectURL(prev)
+      return url
+    })
+    setColour(null)
+  }
+
   return (
     <div className={styles.app}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>Photo Colour Picker</h1>
-        {imageUrl && (
-          <div className={styles.toolbar}>
-            <ToggleGroup
-              value={mode}
-              onValueChange={val => val && setMode(val)}
-              className={styles.modeToggle}
-              aria-label="Pick mode"
-            >
-              <Toggle value="pixel" className={styles.modeBtn} aria-label="Pixel mode">
-                Pixel
-              </Toggle>
-              <Toggle value="area" className={styles.modeBtn} aria-label="Area average mode">
-                Area average
-              </Toggle>
-            </ToggleGroup>
-            <label className={styles.changeBtn}>
-              Change photo
-              <input
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={e => handleFile(e.target.files[0])}
-              />
-            </label>
-          </div>
-        )}
-      </header>
-
-      <main className={styles.main}>
-        {!imageUrl ? (
-          <DropZone onFile={handleFile} />
-        ) : (
-          <div className={styles.workspace}>
-            <div className={styles.canvasWrap}>
-              <ImageCanvas
-                imageUrl={imageUrl}
-                mode={mode}
-                onColour={setColour}
-              />
-            </div>
-            <aside className={styles.panel}>
-              <ColourPanel colour={colour} />
-            </aside>
-          </div>
-        )}
-      </main>
+      {!imageUrl ? (
+        <LoadScreen onFile={handleFile} onUrl={handleUrl} />
+      ) : (
+        <>
+          <ResultBar colour={colour} unit={unit} onReset={() => { setImageUrl(null); setColour(null) }} />
+          <main className={styles.main}>
+            <ImageCanvas
+              imageUrl={imageUrl}
+              pixelSize={pixelSize}
+              onColour={setColour}
+            />
+          </main>
+          <ControlBar
+            pixelSize={pixelSize}
+            onPixelSize={setPixelSize}
+            unit={unit}
+            onUnit={setUnit}
+          />
+        </>
+      )}
     </div>
   )
 }

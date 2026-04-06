@@ -76,6 +76,20 @@ export function getColourName(r, g, b) {
   return [lightness, saturation, hueName].filter(Boolean).join(' ')
 }
 
+// Converts RGB to CMYK. Returns { c, m, y, k } as 0-100 integers.
+export function rgbToCmyk(r, g, b) {
+  const rn = r / 255, gn = g / 255, bn = b / 255
+  const k = 1 - Math.max(rn, gn, bn)
+  if (k === 1) return { c: 0, m: 0, y: 0, k: 100 }
+  const inv = 1 - k
+  return {
+    c: Math.round(((1 - rn - k) / inv) * 100),
+    m: Math.round(((1 - gn - k) / inv) * 100),
+    y: Math.round(((1 - bn - k) / inv) * 100),
+    k: Math.round(k * 100),
+  }
+}
+
 // Reads average RGBA from a rectangular region of a canvas ImageData
 export function sampleRegion(imageData, x1, y1, x2, y2) {
   const minX = Math.max(0, Math.min(x1, x2))

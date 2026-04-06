@@ -7,7 +7,7 @@
   overflow: hidden;
 }
 
-.canvasContainer {
+.canvasWrap {
   position: relative;
   line-height: 0;
   flex-shrink: 0;
@@ -18,11 +18,14 @@
   max-width: 100%;
   max-height: 100%;
   image-rendering: pixelated;
+  touch-action: none;
 }
 
-.dragRect {
+/* Highlight square over the last picked area */
+.highlight {
   position: absolute;
   pointer-events: none;
-  border: 1.5px solid #111111;
-  background: rgba(0, 0, 0, 0.08);
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.6);
+  box-sizing: border-box;
 }

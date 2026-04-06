@@ -17,7 +17,8 @@ export default defineConfig({
         background_color: '#ffffff',
         display: 'standalone',
         orientation: 'portrait',
-        start_url: '/',
+        start_url: '/coursera-week-1/',
+        scope: '/coursera-week-1/',
         icons: [
           { src: 'pwa-64x64.png',           sizes: '64x64',   type: 'image/png' },
           { src: 'pwa-192x192.png',          sizes: '192x192', type: 'image/png' },

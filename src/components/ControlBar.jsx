@@ -25,8 +25,8 @@ export default function ControlBar({ pixelSize, onPixelSize, unit, onUnit }) {
       <div className={styles.row}>
         <span className={styles.label}>Area</span>
         <ToggleGroup
-          value={String(pixelSize)}
-          onValueChange={val => val && onPixelSize(Number(val))}
+          value={[String(pixelSize)]}
+          onValueChange={val => val.length > 0 && onPixelSize(Number(val[0]))}
           className={styles.toggleGroup}
           aria-label="Pixel area size"
         >
@@ -41,8 +41,8 @@ export default function ControlBar({ pixelSize, onPixelSize, unit, onUnit }) {
       <div className={styles.row}>
         <span className={styles.label}>Unit</span>
         <ToggleGroup
-          value={unit}
-          onValueChange={val => val && onUnit(val)}
+          value={[unit]}
+          onValueChange={val => val.length > 0 && onUnit(val[0])}
           className={styles.toggleGroup}
           aria-label="Colour value unit"
         >

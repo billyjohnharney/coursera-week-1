@@ -39,13 +39,8 @@ export default function ResultBar({ colour, unit, onUnit, onReset }) {
           <span className={styles.name} style={{ color: fg }}>{name}</span>
 
           <div className={styles.valueRow}>
-            {/* Unit picker — tap to open */}
             <UnitPicker unit={unit} onUnit={onUnit} fg={fg} />
-
-            {/* Value display + copy — only when not in Name mode */}
-            {showValue && (
-              <CopyValue value={displayValue} fg={fg} />
-            )}
+            {showValue && <CopyValue value={displayValue} fg={fg} />}
           </div>
         </div>
       ) : (
@@ -57,12 +52,18 @@ export default function ResultBar({ colour, unit, onUnit, onReset }) {
   )
 }
 
-// ── Unit picker popover ───────────────────────────────────────
+// ── Unit picker — controlled popover ─────────────────────────
 function UnitPicker({ unit, onUnit, fg }) {
+  const [open, setOpen] = useState(false)
   const currentLabel = UNITS.find(u => u.value === unit)?.label ?? 'Hex'
 
+  function select(value) {
+    onUnit(value)
+    setOpen(false)
+  }
+
   return (
-    <Popover.Root>
+    <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger
         render={
           <button
@@ -79,18 +80,14 @@ function UnitPicker({ unit, onUnit, fg }) {
         <Popover.Positioner side="bottom" alignment="end" sideOffset={8}>
           <Popover.Popup className={styles.popup}>
             {UNITS.map(({ value, label }) => (
-              <Popover.Close
+              <button
                 key={value}
-                render={
-                  <button
-                    className={`${styles.unitOption} ${unit === value ? styles.unitOptionActive : ''}`}
-                    onClick={() => onUnit(value)}
-                    aria-pressed={unit === value}
-                  />
-                }
+                className={`${styles.unitOption} ${unit === value ? styles.unitOptionActive : ''}`}
+                onClick={() => select(value)}
+                aria-pressed={unit === value}
               >
                 {label}
-              </Popover.Close>
+              </button>
             ))}
           </Popover.Popup>
         </Popover.Positioner>

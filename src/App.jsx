@@ -45,7 +45,6 @@ export default function App() {
             <ResultBar
               colour={colour}
               unit={unit}
-              onUnit={setUnit}
               onReset={() => { setImageUrl(null); setColour(null) }}
             />
             <main className={styles.main}>
@@ -58,6 +57,8 @@ export default function App() {
             <ControlBar
               pixelSize={pixelSize}
               onPixelSize={setPixelSize}
+              unit={unit}
+              onUnit={setUnit}
             />
           </>
         )}

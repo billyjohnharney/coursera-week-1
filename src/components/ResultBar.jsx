@@ -1,17 +1,9 @@
 import React, { useState } from 'react'
-import { Popover } from '@base-ui/react/popover'
+import { Tooltip } from '@base-ui/react/tooltip'
 import { rgbToHex, rgbToHsl, rgbToCmyk, getColourName } from '../colourUtils'
 import styles from './ResultBar.module.css'
 
-const UNITS = [
-  { value: 'hex',  label: 'Hex'  },
-  { value: 'rgb',  label: 'RGB'  },
-  { value: 'cmyk', label: 'CMYK' },
-  { value: 'name', label: 'Name' },
-  { value: 'hsl',  label: 'HSL'  },
-]
-
-export default function ResultBar({ colour, unit, onUnit, onReset }) {
+export default function ResultBar({ colour, unit, onReset }) {
   const hasColour = !!colour
 
   const hex  = hasColour ? rgbToHex(colour.r, colour.g, colour.b)  : null
@@ -37,11 +29,7 @@ export default function ResultBar({ colour, unit, onUnit, onReset }) {
       {hasColour ? (
         <div className={styles.result}>
           <span className={styles.name} style={{ color: fg }}>{name}</span>
-
-          <div className={styles.valueRow}>
-            <UnitPicker unit={unit} onUnit={onUnit} fg={fg} />
-            {showValue && <CopyValue value={displayValue} fg={fg} />}
-          </div>
+          {showValue && <CopyValue value={displayValue} fg={fg} />}
         </div>
       ) : (
         <div className={styles.placeholder}>
@@ -52,51 +40,6 @@ export default function ResultBar({ colour, unit, onUnit, onReset }) {
   )
 }
 
-// ── Unit picker — controlled popover ─────────────────────────
-function UnitPicker({ unit, onUnit, fg }) {
-  const [open, setOpen] = useState(false)
-  const currentLabel = UNITS.find(u => u.value === unit)?.label ?? 'Hex'
-
-  function select(value) {
-    onUnit(value)
-    setOpen(false)
-  }
-
-  return (
-    <Popover.Root open={open} onOpenChange={setOpen}>
-      <Popover.Trigger
-        render={
-          <button
-            className={styles.unitTrigger}
-            style={{ color: fg, borderColor: fg ? `${fg}40` : undefined }}
-            aria-label={`Colour unit: ${currentLabel}. Tap to change.`}
-          />
-        }
-      >
-        {currentLabel} ▾
-      </Popover.Trigger>
-
-      <Popover.Portal>
-        <Popover.Positioner side="bottom" alignment="end" sideOffset={8}>
-          <Popover.Popup className={styles.popup}>
-            {UNITS.map(({ value, label }) => (
-              <button
-                key={value}
-                className={`${styles.unitOption} ${unit === value ? styles.unitOptionActive : ''}`}
-                onClick={() => select(value)}
-                aria-pressed={unit === value}
-              >
-                {label}
-              </button>
-            ))}
-          </Popover.Popup>
-        </Popover.Positioner>
-      </Popover.Portal>
-    </Popover.Root>
-  )
-}
-
-// ── Copy button ───────────────────────────────────────────────
 function CopyValue({ value, fg }) {
   const [copied, setCopied] = useState(false)
 
@@ -108,21 +51,32 @@ function CopyValue({ value, fg }) {
   }
 
   return (
-    <div className={styles.valueWrap}>
-      <span className={styles.valueText} style={{ color: fg }}>{value}</span>
-      <button
-        className={styles.copyBtn}
-        style={{ color: fg, borderColor: fg ? `${fg}40` : undefined }}
-        onClick={copy}
-        aria-label={`Copy ${value}`}
-      >
-        {copied ? '✓' : 'Copy'}
-      </button>
-    </div>
+    <Tooltip.Provider delay={300}>
+      <Tooltip.Root>
+        <Tooltip.Trigger
+          render={
+            <button
+              className={styles.valueBtn}
+              style={{ color: fg, borderColor: fg ? `${fg}40` : undefined }}
+              onClick={copy}
+              aria-label={`Copy value: ${value}`}
+            />
+          }
+        >
+          {copied ? 'Copied!' : value}
+        </Tooltip.Trigger>
+        <Tooltip.Portal>
+          <Tooltip.Positioner side="bottom" sideOffset={6}>
+            <Tooltip.Popup className={styles.tooltip}>
+              Tap to copy
+            </Tooltip.Popup>
+          </Tooltip.Positioner>
+        </Tooltip.Portal>
+      </Tooltip.Root>
+    </Tooltip.Provider>
   )
 }
 
-// ── Helpers ───────────────────────────────────────────────────
 function formatValue(colour, unit, hex, hsl, cmyk, name) {
   const { r, g, b } = colour
   switch (unit) {
